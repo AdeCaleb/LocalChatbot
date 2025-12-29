@@ -4,8 +4,9 @@ dist/
 *.log
 .DS_Store
 
-# Local configuration (Claude Code)
+# Local configuration
 CLAUDE.md
+DEVELOPMENT.md
 
 # Rust
 /src-tauri/target/
