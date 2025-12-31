@@ -1,0 +1,163 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Light theme - clean and professional */
+    --background: 0 0% 100%;
+    --foreground: 240 10% 15%;
+
+    --card: 0 0% 98%;
+    --card-foreground: 240 10% 15%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 15%;
+
+    --primary: 340 82% 52%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 240 5% 96%;
+    --secondary-foreground: 240 10% 25%;
+
+    --muted: 240 5% 92%;
+    --muted-foreground: 240 5% 45%;
+
+    --accent: 340 82% 52%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 240 6% 90%;
+    --input: 240 6% 90%;
+    --ring: 340 82% 52%;
+
+    --radius: 0.75rem;
+
+    /* Sidebar - light */
+    --sidebar-background: 240 5% 96%;
+    --sidebar-foreground: 240 10% 15%;
+    --sidebar-primary: 340 82% 52%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 5% 92%;
+    --sidebar-accent-foreground: 240 10% 25%;
+    --sidebar-border: 240 6% 88%;
+    --sidebar-ring: 340 82% 52%;
+
+    /* Custom app colors */
+    --app-surface: 240 5% 98%;
+    --app-surface-elevated: 0 0% 100%;
+    --chat-user: 340 82% 52%;
+    --chat-assistant: 240 5% 94%;
+  }
+
+  .dark {
+    /* Dark theme - deep blue aesthetic */
+    --background: 240 30% 11%;
+    --foreground: 0 0% 92%;
+
+    --card: 240 35% 14%;
+    --card-foreground: 0 0% 92%;
+
+    --popover: 240 35% 14%;
+    --popover-foreground: 0 0% 92%;
+
+    --primary: 350 89% 60%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 240 35% 18%;
+    --secondary-foreground: 0 0% 85%;
+
+    --muted: 240 30% 20%;
+    --muted-foreground: 0 0% 63%;
+
+    --accent: 350 89% 60%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 240 30% 22%;
+    --input: 240 30% 22%;
+    --ring: 350 89% 60%;
+
+    /* Sidebar - dark */
+    --sidebar-background: 240 35% 14%;
+    --sidebar-foreground: 0 0% 92%;
+    --sidebar-primary: 350 89% 60%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 30% 20%;
+    --sidebar-accent-foreground: 0 0% 85%;
+    --sidebar-border: 240 30% 22%;
+    --sidebar-ring: 350 89% 60%;
+
+    /* Custom app colors */
+    --app-surface: 240 35% 14%;
+    --app-surface-elevated: 240 30% 18%;
+    --chat-user: 350 89% 60%;
+    --chat-assistant: 240 35% 18%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted-foreground) / 0.3);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground) / 0.5);
+}
+
+/* Smooth theme transitions */
+html {
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Typing indicator animation */
+@keyframes typing-dot {
+  0%, 60%, 100% {
+    opacity: 0.3;
+    transform: translateY(0);
+  }
+  30% {
+    opacity: 1;
+    transform: translateY(-4px);
+  }
+}
+
+.typing-dot {
+  animation: typing-dot 1.4s infinite ease-in-out;
+}
+
+.typing-dot:nth-child(1) {
+  animation-delay: 0s;
+}
+
+.typing-dot:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.typing-dot:nth-child(3) {
+  animation-delay: 0.4s;
+}
