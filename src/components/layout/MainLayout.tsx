@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { FileText } from 'lucide-react';
 import { useChat } from '@/hooks/useChat';
 import { useDocuments } from '@/hooks/useDocuments';
 import { useSettings } from '@/hooks/useSettings';
@@ -22,6 +21,7 @@ export function MainLayout() {
     deleteChat,
     sendMessage,
     isLoading,
+    isInitializing,
   } = useChat();
 
   const {
@@ -34,8 +34,6 @@ export function MainLayout() {
   } = useDocuments();
 
   const { settings, updateSettings } = useSettings();
-
-  const hasDocuments = documents.length > 0;
 
   return (
     <div className="flex h-screen w-full bg-background">
@@ -66,20 +64,9 @@ export function MainLayout() {
           onOpenSettings={() => setSettingsOpen(true)}
         />
 
-        {!hasDocuments ? (
-          <div className="flex flex-1 flex-col items-center justify-center gap-4 text-muted-foreground p-8">
-            <div className="rounded-full bg-muted p-6">
-              <FileText className="h-12 w-12" />
-            </div>
-            <div className="text-center max-w-md">
-              <p className="text-lg font-medium text-foreground">
-                Upload documents to get started
-              </p>
-              <p className="text-sm mt-2">
-                Add PDF, TXT, or Markdown files to your knowledge base. Once
-                indexed, you can ask questions about their contents.
-              </p>
-            </div>
+        {isInitializing ? (
+          <div className="flex flex-1 items-center justify-center">
+            <div className="text-muted-foreground">Loading chats...</div>
           </div>
         ) : (
           <>
@@ -89,7 +76,7 @@ export function MainLayout() {
             />
             <ChatInput
               onSend={sendMessage}
-              disabled={!hasDocuments || indexStatus === 'indexing'}
+              disabled={indexStatus === 'indexing'}
               isLoading={isLoading}
             />
           </>
