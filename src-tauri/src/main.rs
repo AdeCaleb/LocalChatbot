@@ -3,10 +3,13 @@
 
 mod commands;
 mod db;
+mod documents;
 
 use commands::{
     add_message, chat, create_chat, delete_chat, get_all_chats, get_chat, update_chat_title,
-    DbState,
+    // Document commands
+    delete_document_cmd, get_all_documents, get_document_content, upload_document,
+    AppPaths, DbState,
 };
 use db::Database;
 use std::sync::Mutex;
@@ -16,6 +19,8 @@ use tauri::Manager;
 fn main() {
     tauri::Builder::default()
         .plugin(tauri_plugin_shell::init())
+        // Dialog plugin for file picker dialogs
+        .plugin(tauri_plugin_dialog::init())
         // Setup hook runs once when the app starts
         // This is where we initialize resources like the database
         .setup(|app| {
@@ -32,9 +37,16 @@ fn main() {
             std::fs::create_dir_all(&app_data_dir)
                 .expect("Failed to create app data directory");
 
+            // Create documents subdirectory for storing uploaded files
+            let documents_dir = app_data_dir.join("documents");
+            std::fs::create_dir_all(&documents_dir)
+                .expect("Failed to create documents directory");
+
+            println!("App data directory: {:?}", app_data_dir);
+            println!("Documents directory: {:?}", documents_dir);
+
             // Database file path
             let db_path = app_data_dir.join("chat_history.db");
-
             println!("Database location: {:?}", db_path);
 
             // Initialize the database
@@ -47,10 +59,14 @@ fn main() {
             // Tauri will make this available to any command that requests State<DbState>
             app.manage(DbState(Mutex::new(database)));
 
+            // Register app paths
+            app.manage(AppPaths { documents_dir });
+
             Ok(())
         })
         // Register all commands that the frontend can invoke
         .invoke_handler(tauri::generate_handler![
+            // Chat commands
             chat,
             create_chat,
             get_all_chats,
@@ -58,6 +74,11 @@ fn main() {
             delete_chat,
             add_message,
             update_chat_title,
+            // Document commands
+            get_all_documents,
+            upload_document,
+            delete_document_cmd,
+            get_document_content,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

@@ -1,4 +1,3 @@
-import { useCallback } from 'react';
 import { FileText, File, FileCode, Trash2, Upload } from 'lucide-react';
 import { Document } from '@/types';
 import { cn } from '@/lib/utils';
@@ -6,7 +5,7 @@ import { cn } from '@/lib/utils';
 interface DocumentListProps {
   documents: Document[];
   onDelete: (documentId: string) => void;
-  onUpload: (file: File) => void;
+  onUpload: () => void; // Now opens a native file dialog
   isUploading: boolean;
 }
 
@@ -33,31 +32,6 @@ export function DocumentList({
   onUpload,
   isUploading,
 }: DocumentListProps) {
-  const handleDrop = useCallback(
-    (e: React.DragEvent) => {
-      e.preventDefault();
-      const file = e.dataTransfer.files[0];
-      if (file) {
-        const ext = file.name.split('.').pop()?.toLowerCase();
-        if (['pdf', 'txt', 'md'].includes(ext || '')) {
-          onUpload(file);
-        }
-      }
-    },
-    [onUpload]
-  );
-
-  const handleFileSelect = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const file = e.target.files?.[0];
-      if (file) {
-        onUpload(file);
-      }
-      e.target.value = '';
-    },
-    [onUpload]
-  );
-
   return (
     <div className="flex flex-col gap-2 px-2">
       {documents.length > 0 && (
@@ -88,9 +62,10 @@ export function DocumentList({
         </div>
       )}
 
-      <label
-        onDrop={handleDrop}
-        onDragOver={(e) => e.preventDefault()}
+      {/* Upload button - uses native Tauri file dialog */}
+      <button
+        onClick={onUpload}
+        disabled={isUploading}
         className={cn(
           'flex cursor-pointer flex-col items-center gap-2 rounded-lg border-2 border-dashed border-sidebar-border p-4 text-center transition-colors hover:border-primary hover:bg-sidebar-accent/30',
           isUploading && 'opacity-50 pointer-events-none'
@@ -98,18 +73,17 @@ export function DocumentList({
       >
         <Upload className="h-5 w-5 text-muted-foreground" />
         <div className="text-xs text-muted-foreground">
-          <span className="font-medium text-foreground">Drop files</span> or
-          click to upload
+          {isUploading ? (
+            <span>Uploading...</span>
+          ) : (
+            <>
+              <span className="font-medium text-foreground">Click to upload</span>
+              {' '}documents
+            </>
+          )}
         </div>
         <p className="text-[10px] text-muted-foreground">PDF, TXT, MD</p>
-        <input
-          type="file"
-          accept=".pdf,.txt,.md"
-          onChange={handleFileSelect}
-          className="hidden"
-          disabled={isUploading}
-        />
-      </label>
+      </button>
     </div>
   );
 }

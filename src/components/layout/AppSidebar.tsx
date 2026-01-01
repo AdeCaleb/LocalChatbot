@@ -17,7 +17,7 @@ interface AppSidebarProps {
   onNewChat: () => void;
   documents: Document[];
   onDeleteDocument: (documentId: string) => void;
-  onUploadDocument: (file: File) => void;
+  onUploadDocument: () => void;
   isUploading: boolean;
   indexStatus: IndexStatusType;
   onRebuildIndex: () => void;

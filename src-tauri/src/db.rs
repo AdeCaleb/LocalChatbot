@@ -57,7 +57,8 @@ pub struct ChatWithMessages {
 /// 2. Add domain-specific methods
 /// 3. Control access and ensure proper resource management
 pub struct Database {
-    conn: Connection,
+    /// The SQLite connection - public so document commands can access it
+    pub conn: Connection,
 }
 
 impl Database {
@@ -76,6 +77,9 @@ impl Database {
         // Initialize tables - the `?` operator propagates errors
         // If init_schema() returns Err, this function returns early with that error
         db.init_schema()?;
+
+        // Initialize document tables
+        crate::documents::init_documents_table(&db.conn)?;
 
         Ok(db)
     }

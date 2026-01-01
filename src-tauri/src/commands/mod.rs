@@ -131,3 +131,137 @@ pub async fn chat(message: String) -> Result<String, String> {
     // Placeholder response - will integrate RAG + LLM later
     Ok(format!("Echo: {}", message))
 }
+
+// ============================================================================
+// Document Commands
+// ============================================================================
+
+use crate::documents::{self, Document};
+use std::path::PathBuf;
+
+/// Application state for storing the documents directory path.
+pub struct AppPaths {
+    pub documents_dir: PathBuf,
+}
+
+/// Response type for document operations (matches frontend expectations).
+#[derive(serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct DocumentResponse {
+    pub id: String,
+    pub name: String,
+    #[serde(rename = "type")]
+    pub doc_type: String,
+    pub size: u64,
+    pub uploaded_at: String,
+}
+
+impl From<Document> for DocumentResponse {
+    fn from(doc: Document) -> Self {
+        DocumentResponse {
+            id: doc.id,
+            name: doc.name,
+            doc_type: doc.doc_type.as_str().to_string(),
+            size: doc.size,
+            uploaded_at: doc.uploaded_at.to_rfc3339(),
+        }
+    }
+}
+
+/// Get all documents.
+#[tauri::command]
+pub fn get_all_documents(db: State<'_, DbState>) -> Result<Vec<DocumentResponse>, String> {
+    let db = db.0.lock().map_err(|e| e.to_string())?;
+    let docs = documents::get_all_documents(&db.conn).map_err(|e| e.to_string())?;
+    Ok(docs.into_iter().map(DocumentResponse::from).collect())
+}
+
+/// Upload and process a document from a file path.
+///
+/// This command:
+/// 1. Reads the file from the given path
+/// 2. Extracts text content based on file type
+/// 3. Copies the file to the app's documents directory
+/// 4. Saves metadata and content to the database
+#[tauri::command]
+pub fn upload_document(
+    db: State<'_, DbState>,
+    paths: State<'_, AppPaths>,
+    file_path: String,
+) -> Result<DocumentResponse, String> {
+    let source_path = PathBuf::from(&file_path);
+
+    // Validate the file exists
+    if !source_path.exists() {
+        return Err(format!("File not found: {}", file_path));
+    }
+
+    // Generate a unique ID
+    let id = Uuid::new_v4().to_string();
+
+    // Load and extract text from the document
+    let loaded = documents::load_document(&source_path, &id)
+        .map_err(|e| e.to_string())?;
+
+    // Copy the file to our documents directory for safekeeping
+    let file_name = source_path
+        .file_name()
+        .and_then(|n| n.to_str())
+        .unwrap_or("document");
+
+    let dest_path = paths.documents_dir.join(format!("{}_{}", id, file_name));
+    std::fs::copy(&source_path, &dest_path)
+        .map_err(|e| format!("Failed to copy file: {}", e))?;
+
+    // Update the document metadata with the new path
+    let mut doc = loaded.metadata;
+    doc.path = dest_path.to_string_lossy().to_string();
+
+    // Save to database
+    let db = db.0.lock().map_err(|e| e.to_string())?;
+    documents::save_document(&db.conn, &doc).map_err(|e| e.to_string())?;
+    documents::save_document_content(&db.conn, &doc.id, &loaded.content)
+        .map_err(|e| e.to_string())?;
+
+    println!(
+        "Uploaded document: {} ({} bytes, {} chars of text)",
+        doc.name,
+        doc.size,
+        loaded.content.len()
+    );
+
+    Ok(DocumentResponse::from(doc))
+}
+
+/// Delete a document.
+#[tauri::command]
+pub fn delete_document_cmd(
+    db: State<'_, DbState>,
+    document_id: String,
+) -> Result<bool, String> {
+    let db = db.0.lock().map_err(|e| e.to_string())?;
+
+    // Get the document to find its file path
+    if let Some(doc) = documents::get_document(&db.conn, &document_id)
+        .map_err(|e| e.to_string())?
+    {
+        // Delete the file from disk
+        let path = PathBuf::from(&doc.path);
+        if path.exists() {
+            std::fs::remove_file(&path).ok(); // Ignore errors if file can't be deleted
+        }
+    }
+
+    // Delete from database
+    documents::delete_document(&db.conn, &document_id).map_err(|e| e.to_string())
+}
+
+/// Get document content (extracted text).
+#[tauri::command]
+pub fn get_document_content(
+    db: State<'_, DbState>,
+    document_id: String,
+) -> Result<Option<String>, String> {
+    let db = db.0.lock().map_err(|e| e.to_string())?;
+    documents::get_document_content(&db.conn, &document_id).map_err(|e| e.to_string())
+}
