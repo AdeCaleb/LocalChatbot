@@ -71,6 +71,10 @@ impl Database {
         // Open or create the SQLite database file
         let conn = Connection::open(path)?;
 
+        // Enable foreign key enforcement FIRST (SQLite has it off by default)
+        // This must be done before creating any tables with foreign keys
+        conn.execute("PRAGMA foreign_keys = ON", [])?;
+
         // Create a new Database instance
         let db = Database { conn };
 
@@ -80,6 +84,9 @@ impl Database {
 
         // Initialize document tables
         crate::documents::init_documents_table(&db.conn)?;
+
+        // Initialize chunk tables
+        crate::chunker::init_chunks_table(&db.conn)?;
 
         Ok(db)
     }
@@ -114,9 +121,6 @@ impl Database {
             )",
             [],
         )?;
-
-        // Enable foreign key enforcement (SQLite has it off by default)
-        self.conn.execute("PRAGMA foreign_keys = ON", [])?;
 
         // Create index for faster message lookups by chat_id
         self.conn.execute(

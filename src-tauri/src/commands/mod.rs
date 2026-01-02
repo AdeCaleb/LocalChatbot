@@ -136,6 +136,7 @@ pub async fn chat(message: String) -> Result<String, String> {
 // Document Commands
 // ============================================================================
 
+use crate::chunker::{self, Chunk, ChunkConfig};
 use crate::documents::{self, Document};
 use std::path::PathBuf;
 
@@ -223,11 +224,17 @@ pub fn upload_document(
     documents::save_document_content(&db.conn, &doc.id, &loaded.content)
         .map_err(|e| e.to_string())?;
 
+    // Chunk the document for RAG
+    let config = ChunkConfig::default();
+    let chunks = chunker::chunk_text(&doc.id, &loaded.content, &config);
+    chunker::save_chunks(&db.conn, &chunks).map_err(|e| e.to_string())?;
+
     println!(
-        "Uploaded document: {} ({} bytes, {} chars of text)",
+        "Uploaded document: {} ({} bytes, {} chars of text, {} chunks)",
         doc.name,
         doc.size,
-        loaded.content.len()
+        loaded.content.len(),
+        chunks.len()
     );
 
     Ok(DocumentResponse::from(doc))
@@ -264,4 +271,52 @@ pub fn get_document_content(
 ) -> Result<Option<String>, String> {
     let db = db.0.lock().map_err(|e| e.to_string())?;
     documents::get_document_content(&db.conn, &document_id).map_err(|e| e.to_string())
+}
+
+// ============================================================================
+// Chunk Commands
+// ============================================================================
+
+/// Response type for chunks.
+#[derive(serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ChunkResponse {
+    pub id: String,
+    pub document_id: String,
+    pub chunk_index: usize,
+    pub content: String,
+    pub start_offset: usize,
+    pub end_offset: usize,
+}
+
+impl From<Chunk> for ChunkResponse {
+    fn from(chunk: Chunk) -> Self {
+        ChunkResponse {
+            id: chunk.id,
+            document_id: chunk.document_id,
+            chunk_index: chunk.chunk_index,
+            content: chunk.content,
+            start_offset: chunk.start_offset,
+            end_offset: chunk.end_offset,
+        }
+    }
+}
+
+/// Get all chunks for a document.
+#[tauri::command]
+pub fn get_document_chunks(
+    db: State<'_, DbState>,
+    document_id: String,
+) -> Result<Vec<ChunkResponse>, String> {
+    let db = db.0.lock().map_err(|e| e.to_string())?;
+    let chunks = chunker::get_document_chunks(&db.conn, &document_id)
+        .map_err(|e| e.to_string())?;
+    Ok(chunks.into_iter().map(ChunkResponse::from).collect())
+}
+
+/// Get chunk statistics.
+#[tauri::command]
+pub fn get_chunk_stats(db: State<'_, DbState>) -> Result<(usize, usize), String> {
+    let db = db.0.lock().map_err(|e| e.to_string())?;
+    chunker::get_chunk_stats(&db.conn).map_err(|e| e.to_string())
 }

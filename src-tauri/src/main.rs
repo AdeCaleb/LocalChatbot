@@ -1,6 +1,7 @@
 // Prevents additional console window on Windows in release mode
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+mod chunker;
 mod commands;
 mod db;
 mod documents;
@@ -9,6 +10,8 @@ use commands::{
     add_message, chat, create_chat, delete_chat, get_all_chats, get_chat, update_chat_title,
     // Document commands
     delete_document_cmd, get_all_documents, get_document_content, upload_document,
+    // Chunk commands
+    get_chunk_stats, get_document_chunks,
     AppPaths, DbState,
 };
 use db::Database;
@@ -79,6 +82,9 @@ fn main() {
             upload_document,
             delete_document_cmd,
             get_document_content,
+            // Chunk commands
+            get_document_chunks,
+            get_chunk_stats,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
