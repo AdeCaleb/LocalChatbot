@@ -5,6 +5,8 @@ mod chunker;
 mod commands;
 mod db;
 mod documents;
+mod embeddings;
+mod vector_store;
 
 use commands::{
     add_message, chat, create_chat, delete_chat, get_all_chats, get_chat, update_chat_title,
@@ -12,7 +14,10 @@ use commands::{
     delete_document_cmd, get_all_documents, get_document_content, upload_document,
     // Chunk commands
     get_chunk_stats, get_document_chunks,
-    AppPaths, DbState,
+    // Embedding commands
+    get_embedding_stats, index_all_documents, index_document, init_embedding_model,
+    is_model_loaded, search_documents,
+    AppPaths, DbState, EmbeddingState,
 };
 use db::Database;
 use std::sync::Mutex;
@@ -65,6 +70,9 @@ fn main() {
             // Register app paths
             app.manage(AppPaths { documents_dir });
 
+            // Register embedding model state (initially empty, loaded on demand)
+            app.manage(EmbeddingState(Mutex::new(None)));
+
             Ok(())
         })
         // Register all commands that the frontend can invoke
@@ -85,6 +93,13 @@ fn main() {
             // Chunk commands
             get_document_chunks,
             get_chunk_stats,
+            // Embedding commands
+            init_embedding_model,
+            is_model_loaded,
+            index_document,
+            index_all_documents,
+            search_documents,
+            get_embedding_stats,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

@@ -25,6 +25,17 @@ pdf-extract = "0.7"
 # File dialog plugin for Tauri
 tauri-plugin-dialog = "2"
 
+# Embedding model support (candle ML framework)
+candle-core = "0.8"
+candle-nn = "0.8"
+candle-transformers = "0.8"
+# Hugging Face Hub for downloading models
+hf-hub = { version = "0.4", features = ["tokio"] }
+# Tokenizer for text preprocessing
+tokenizers = "0.21"
+# Cross-platform directories (cache, config, etc.)
+dirs = "5"
+
 [profile.release]
 panic = "abort"
 codegen-units = 1

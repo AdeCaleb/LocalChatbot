@@ -88,6 +88,9 @@ impl Database {
         // Initialize chunk tables
         crate::chunker::init_chunks_table(&db.conn)?;
 
+        // Initialize embedding/vector store tables
+        crate::vector_store::init_embeddings_table(&db.conn)?;
+
         Ok(db)
     }
 
