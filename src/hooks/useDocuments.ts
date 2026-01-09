@@ -162,14 +162,19 @@ export function useDocuments() {
   /**
    * Rebuild the vector index for all documents.
    *
-   * TODO: This will trigger re-embedding and re-indexing
-   * of all documents when the RAG pipeline is implemented.
+   * Calls the Rust backend to generate embeddings for all
+   * documents that don't have them yet.
    */
   const rebuildIndex = useCallback(async () => {
     setIndexStatus('indexing');
-    // TODO: Implement actual index rebuild with embeddings
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-    setIndexStatus('ready');
+    try {
+      const [docsIndexed, chunksIndexed] = await invoke<[number, number]>('index_all_documents');
+      console.log(`Indexed ${docsIndexed} documents (${chunksIndexed} chunks)`);
+      setIndexStatus('ready');
+    } catch (err) {
+      console.error('Failed to rebuild index:', err);
+      setIndexStatus('error');
+    }
   }, []);
 
   return {

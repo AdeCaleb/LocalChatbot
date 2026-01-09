@@ -11,8 +11,9 @@ interface ChatHeaderProps {
 
 export function ChatHeader({ modelStatus, onOpenSettings }: ChatHeaderProps) {
   const statusConfig = {
+    not_loaded: { label: 'Model Not Loaded', color: 'bg-gray-400' },
+    loading: { label: 'Loading Model...', color: 'bg-amber-500' },
     ready: { label: 'Model Ready', color: 'bg-emerald-500' },
-    loading: { label: 'Loading...', color: 'bg-amber-500' },
     error: { label: 'Model Error', color: 'bg-destructive' },
   };
 

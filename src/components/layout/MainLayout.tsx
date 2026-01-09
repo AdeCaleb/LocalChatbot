@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useChat } from '@/hooks/useChat';
 import { useDocuments } from '@/hooks/useDocuments';
 import { useSettings } from '@/hooks/useSettings';
+import { useEmbedding } from '@/hooks/useEmbedding';
 import { AppSidebar, SidebarToggle } from './AppSidebar';
 import { ChatHeader } from './ChatHeader';
 import { MessageList } from '@/components/chat/MessageList';
@@ -35,6 +36,12 @@ export function MainLayout() {
 
   const { settings, updateSettings } = useSettings();
 
+  const {
+    modelStatus,
+    search,
+    indexAllDocuments,
+  } = useEmbedding();
+
   return (
     <div className="flex h-screen w-full bg-background">
       <SidebarToggle
@@ -60,7 +67,7 @@ export function MainLayout() {
 
       <main className="flex flex-1 flex-col min-w-0">
         <ChatHeader
-          modelStatus="ready"
+          modelStatus={modelStatus}
           onOpenSettings={() => setSettingsOpen(true)}
         />
 

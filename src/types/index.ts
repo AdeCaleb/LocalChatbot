@@ -39,7 +39,7 @@ export interface Settings {
 
 export type IndexStatus = 'ready' | 'indexing' | 'error';
 
-export type ModelStatus = 'ready' | 'loading' | 'error';
+export type ModelStatus = 'not_loaded' | 'loading' | 'ready' | 'error';
 
 // Types matching Rust backend responses (dates as ISO strings)
 export interface BackendMessage {

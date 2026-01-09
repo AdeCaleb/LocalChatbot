@@ -93,6 +93,7 @@ export function AppSidebar({
             {documents.length} docs
           </span>
         </div>
+
         <DocumentList
           documents={documents}
           onDelete={onDeleteDocument}
